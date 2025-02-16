@@ -2,6 +2,7 @@ import { RequestHandler } from 'express'
 import jwt from 'jsonwebtoken'
 
 const authenticate: RequestHandler = (req, res, next) => {
+  console.log('Cookies:', req.cookies)
   const token = req.cookies.token
 
   if (!token) {

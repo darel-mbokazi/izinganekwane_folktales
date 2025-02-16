@@ -22,7 +22,6 @@ app.use(morgan('dev'))
 app.use(
   cors({
     origin: ['https://izinganekwane-folktales.vercel.app'],
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
   })
 )
