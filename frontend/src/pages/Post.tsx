@@ -117,46 +117,57 @@ const Post: React.FC = () => {
   }
 
   const handleCommentSubmit = async (e: SyntheticEvent) => {
-    e.preventDefault()
-    if (!user || !newComment.trim()) return
+    e.preventDefault();
+    if (!user || !newComment.trim()) return;
 
-    console.log('Submitting comment:', newComment)
+    console.log('Submitting comment:', newComment);
 
     try {
       const response = await axios.post(
         `${API_URL}/posts/comments/${postId}/add-comment`,
         { content: newComment },
         { withCredentials: true }
-      )
-      console.log('Comment added:', response.data)
-      setComments([...comments, response.data])
-      setNewComment('')
+      );
 
+      console.log('Comment added:', response.data);
+
+      // Update the comments state locally
+      setComments((prevComments) => [...prevComments, response.data]);
+      setNewComment(''); 
     } catch (err) {
-      console.error('Error adding comment:', err)
+      console.error('Error adding comment:', err);
     }
-  }
+  };
 
   const handleReplySubmit = async (commentId: string) => {
-    if (!user || !reply[commentId]?.trim()) return
+    if (!user || !reply[commentId]?.trim()) return;
 
-    console.log('Submitting reply:', reply[commentId])
+    console.log('Submitting reply:', reply[commentId]);
 
     try {
       const response = await axios.post(
         `${API_URL}/posts/comments/${postId}/comment/${commentId}/add-reply`,
         { content: reply[commentId] },
         { withCredentials: true }
-      )
-      setComments(response.data.comments)
-      setReply((prev) => ({ ...prev, [commentId]: '' }))
+      );
 
-      console.log('Reply added:', response.data)
-      
+      console.log('Reply added:', response.data);
+
+      // Update the comments state locally
+      setComments((prevComments) =>
+        prevComments.map((comment) =>
+          comment._id === commentId
+            ? { ...comment, replies: [...comment.replies, response.data] }
+            : comment
+        )
+      );
+
+      // Clear the reply input for this comment
+      setReply((prev) => ({ ...prev, [commentId]: '' }));
     } catch (err) {
-      console.error('Error adding reply:', err)
+      console.error('Error adding reply:', err);
     }
-  }
+  };
 
   const handleDeleteComment = async (commentId: string) => {
     if (!user) return
