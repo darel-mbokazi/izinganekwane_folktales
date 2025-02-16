@@ -104,7 +104,7 @@ const signIn: RequestHandler<unknown, unknown, userInfo, unknown> = async (
 
     res.cookie('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', 
+      secure: true, 
       sameSite: 'none',
     })
 
