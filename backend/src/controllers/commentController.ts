@@ -1,39 +1,47 @@
 import { RequestHandler } from 'express'
 import PostModel from '../models/post'
+import UserModel from '../models/User';
 
 const addComment: RequestHandler = async (req, res, next) => {
-  const { content } = req.body
-  const postId = req.params.postId
-  const userId = req.user?.userId
+  const { content } = req.body;
+  const postId = req.params.postId;
+  const userId = req.user?.userId;
 
   if (!content) {
-    return res.status(400).json({ message: 'Comment content is required.' })
+    return res.status(400).json({ message: 'Comment content is required.' });
   }
 
   try {
-    const post = await PostModel.findById(postId).exec()
+    const post = await PostModel.findById(postId).exec();
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found.' })
+      return res.status(404).json({ message: 'Post not found.' });
+    }
+
+    // Fetch the user's name
+    const user = await UserModel.findById(userId).select('name').exec();
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
     }
 
     const comment = {
       content,
-      author: userId, 
+      authorId: userId, 
+      authorName: user.name, 
       likes: [],
       dislikes: [],
       replies: [],
-      createdAt: new Date(), 
-    }
+      createdAt: new Date(),
+    };
 
-    post.comments.push(comment) 
-    const updatedPost = await post.save()
+    post.comments.push(comment);
+    const updatedPost = await post.save();
 
-    res.status(201).json({ message: 'Comment added.', post: updatedPost })
+    res.status(201).json({ message: 'Comment added.', post: updatedPost });
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};
 
 const getAllComments: RequestHandler = async (req, res, next) => {
   const postId = req.params.postId
@@ -52,128 +60,131 @@ const getAllComments: RequestHandler = async (req, res, next) => {
 }
 
 const deleteComment: RequestHandler = async (req, res, next) => {
-  const { postId, commentId } = req.params 
-  const userId = req.user?.userId 
+  const { postId, commentId } = req.params;
+  const userId = req.user?.userId;
 
   try {
-    const post = await PostModel.findById(postId).exec()
+    const post = await PostModel.findById(postId).exec();
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found.' })
+      return res.status(404).json({ message: 'Post not found.' });
     }
 
     const commentIndex = post.comments.findIndex(
       (comment) =>
         comment._id.toString() === commentId &&
-        comment.author.toString() === userId
-    )
+        comment.authorId.toString() === userId 
+    );
 
     if (commentIndex === -1) {
-      return res
-        .status(403)
-        .json({
-          message:
-            'You are not authorized to delete this comment or comment not found.',
-        })
+      return res.status(403).json({
+        message:
+          'You are not authorized to delete this comment or comment not found.',
+      });
     }
 
-    post.comments.splice(commentIndex, 1)
+    post.comments.splice(commentIndex, 1);
 
-    const updatedPost = await post.save()
+    const updatedPost = await post.save();
 
-    res.status(200).json({ message: 'Comment deleted.', post: updatedPost })
+    res.status(200).json({ message: 'Comment deleted.', post: updatedPost });
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};
 
 
 const addReply: RequestHandler = async (req, res, next) => {
-   const { postId, commentId } = req.params
-   const { content } = req.body
-   const userId = req.user?.userId 
+  const { postId, commentId } = req.params;
+  const { content } = req.body;
+  const userId = req.user?.userId;
 
-   if (!content) {
-     return res.status(400).json({ message: 'Reply content is required.' })
-   }
+  if (!content) {
+    return res.status(400).json({ message: 'Reply content is required.' });
+  }
 
-   try {
-     const post = await PostModel.findById(postId).exec()
+  try {
+    const post = await PostModel.findById(postId).exec();
 
-     if (!post) {
-       return res.status(404).json({ message: 'Post not found.' })
-     }
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found.' });
+    }
 
-     const comment = post.comments.find((c) => c._id.toString() === commentId)
+    const comment = post.comments.find((c) => c._id.toString() === commentId);
 
-     if (!comment) {
-       return res.status(404).json({ message: 'Comment not found.' })
-     }
+    if (!comment) {
+      return res.status(404).json({ message: 'Comment not found.' });
+    }
 
-     if (!Array.isArray(comment.replies)) {
-       comment.replies = [] 
-     }
+    if (!Array.isArray(comment.replies)) {
+      comment.replies = [];
+    }
 
-     const reply = {
-       content,
-       author: userId,
-       likes: [],
-       dislikes: [],
-       createdAt: new Date(),
-     }
+    const user = await UserModel.findById(userId).select('name').exec();
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
 
-     comment.replies.push(reply)
+    const reply = {
+      content,
+      authorId: userId, 
+      authorName: user.name, 
+      likes: [],
+      dislikes: [],
+      createdAt: new Date(),
+    };
 
-     const updatedPost = await post.save()
+    comment.replies.push(reply);
+    const updatedPost = await post.save();
 
-     res.status(201).json({ message: 'Reply added.', post: updatedPost })
-   } catch (error) {
-     next(error)
-   }
-}
+    res.status(201).json({ message: 'Reply added.', post: updatedPost });
+  } catch (error) {
+    next(error);
+  }
+};
 
 
 const deleteReply: RequestHandler = async (req, res, next) => {
-  const { postId, commentId, replyId } = req.params
-  const userId = req.user?.userId
+  const { postId, commentId, replyId } = req.params;
+  const userId = req.user?.userId;
 
   try {
-    const post = await PostModel.findById(postId).exec()
+    const post = await PostModel.findById(postId).exec();
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found.' })
+      return res.status(404).json({ message: 'Post not found.' });
     }
 
     const comment = post.comments.find(
       (comment) => comment._id.toString() === commentId
-    )
+    );
 
     if (!comment) {
-      return res.status(404).json({ message: 'Comment not found.' })
+      return res.status(404).json({ message: 'Comment not found.' });
     }
 
     const replyIndex = comment.replies.findIndex(
       (reply) =>
-        reply._id.toString() === replyId && reply.author.toString() === userId
-    )
+        reply._id.toString() === replyId &&
+        reply.authorId.toString() === userId 
+    );
 
     if (replyIndex === -1) {
-      return res
-        .status(403)
-        .json({
-          message:
-            'You are not authorized to delete this reply or reply not found.',
-        })
+      return res.status(403).json({
+        message:
+          'You are not authorized to delete this reply or reply not found.',
+      });
     }
 
-    comment.replies.splice(replyIndex, 1)
-    const updatedPost = await post.save()
+    comment.replies.splice(replyIndex, 1);
 
-    res.status(200).json({ message: 'Reply deleted.', post: updatedPost })
+    const updatedPost = await post.save();
+
+    res.status(200).json({ message: 'Reply deleted.', post: updatedPost });
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};
 
 
 export {

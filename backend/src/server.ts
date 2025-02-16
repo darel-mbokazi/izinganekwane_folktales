@@ -16,7 +16,6 @@ const app = express()
 const port = process.env.PORT || 5400
 const mongoUrl = process.env.MONGO_URI
 
-
 // Middleware
 app.use(express.json())
 app.use(morgan('dev'))
@@ -37,8 +36,8 @@ app.get('/', (req, res) => {
 // Routes
 app.use('/api/posts', postRoutes)
 app.use('/api/users', userRoutes)
-app.use('/api/posts/comment', commentRoutes)
-app.use('/api/posts/reaction', reactionRoutes)
+app.use('/api/posts/comments', commentRoutes)
+app.use('/api/posts/reactions', reactionRoutes)
 
 // Connect to MongoDB and start server
 mongoose

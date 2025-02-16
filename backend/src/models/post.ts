@@ -2,15 +2,17 @@ import mongoose, { Schema, Document } from 'mongoose'
 
 const replySchema = new Schema({
   content: { type: String, required: true },
-  author: { type: String, required: true },
+  authorId: { type: Schema.Types.ObjectId, ref: 'User', required: true }, 
+  authorName: { type: String, required: true },   
   likes: [{ type: Schema.Types.ObjectId, ref: 'User', default: [] }],
   dislikes: [{ type: Schema.Types.ObjectId, ref: 'User', default: [] }],
   createdAt: { type: Date, default: Date.now },
 })
-
+0
 const commentSchema = new Schema({
   content: { type: String, required: true },
-  author: { type: String, required: true },
+  authorId: { type: Schema.Types.ObjectId, ref: 'User', required: true }, 
+  authorName: { type: String, required: true }, 
   likes: [{ type: Schema.Types.ObjectId, ref: 'User', default: [] }],
   dislikes: [{ type: Schema.Types.ObjectId, ref: 'User', default: [] }],
   replies: [replySchema],
@@ -28,13 +30,15 @@ interface IPost extends Document {
   comments: {
     [x: string]: any
     content: string
-    author: string
+    authorId: mongoose.Types.ObjectId;
+    authorName: string;
     likes: mongoose.Types.ObjectId[] 
     dislikes: mongoose.Types.ObjectId[] 
     replies: {
       [x: string]: any
       content: string
-      author: string
+      authorId: mongoose.Types.ObjectId;
+      authorName: string;
       likes: mongoose.Types.ObjectId[] 
       dislikes: mongoose.Types.ObjectId[] 
       createdAt: Date
@@ -62,3 +66,5 @@ const postSchema: Schema<IPost> = new Schema(
 const PostModel = mongoose.model<IPost>('Post', postSchema)
 
 export default PostModel
+
+
