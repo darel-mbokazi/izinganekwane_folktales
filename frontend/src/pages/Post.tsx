@@ -132,8 +132,6 @@ const Post: React.FC = () => {
       setComments([...comments, response.data])
       setNewComment('')
 
-      window.location.reload()
-
     } catch (err) {
       console.error('Error adding comment:', err)
     }
@@ -154,8 +152,6 @@ const Post: React.FC = () => {
       setReply((prev) => ({ ...prev, [commentId]: '' }))
 
       console.log('Reply added:', response.data)
-
-      window.location.reload()
       
     } catch (err) {
       console.error('Error adding reply:', err)
