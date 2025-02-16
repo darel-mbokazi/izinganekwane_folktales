@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
+import { API_URL } from '../config.ts';
 
 const CreatePost = () => {
   const [title, setTitle] = useState('')
@@ -15,7 +16,7 @@ const CreatePost = () => {
     const checkLoginStatus = async () => {
       try {
         const response = await axios.get(
-          'https://izinganekwane-folktales-backend.vercel.app/api/users/',
+          `${API_URL}/users/`,
           {
             withCredentials: true,
           }
@@ -39,7 +40,7 @@ const CreatePost = () => {
 
     try {
       await axios.post(
-        'https://izinganekwane-folktales-backend.vercel.app/api/posts/',
+        `${API_URL}/posts/`,
         { title, author, content },
         { withCredentials: true }
       )

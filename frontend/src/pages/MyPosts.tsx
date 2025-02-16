@@ -6,6 +6,7 @@ import DeletePost from '../components/DeletePost'
 import { useAuth } from '../context/AuthContext' 
 import { FaRegEdit } from 'react-icons/fa'
 import { MdDeleteForever } from 'react-icons/md'
+import { API_URL } from '../config.ts';
 
 const MyPosts = () => {
   const [posts, setPosts] = useState<Posts[]>([])
@@ -25,7 +26,7 @@ const MyPosts = () => {
       if (user?._id) {
         try {
           const response = await axios.get(
-            'https://izinganekwane-folktales-backend.vercel.app/api/posts/my-posts/',
+            `${API_URL}/posts/my-posts/`,
             { withCredentials: true }
           )
           // Filter the posts to ensure only posts created by the authenticated user are displayed
@@ -55,7 +56,7 @@ const MyPosts = () => {
   const handleConfirmDelete = async () => {
     if (deletePost) {
       try {
-        await axios.delete(`https://izinganekwane-folktales-backend.vercel.app/api/posts/${deletePost}`, {
+        await axios.delete(`${API_URL}/posts/${deletePost}`, {
           withCredentials: true,
         })
         setPosts(posts.filter((post) => post._id !== deletePost))
@@ -82,7 +83,10 @@ const MyPosts = () => {
             {posts.map((post) => (
               <div key={post._id} className="p-5 flex flex-1">
                 <div className="max-w-lg rounded overflow-hidden shadow-lg p-4 grid place-center-center">
+                  <h1>Kwesukesukela</h1>
                   <h2 className="font-bold">{post.title.toUpperCase()}</h2>
+                  <p className="italic">Cosu</p>
+                  <p className="italic">Sampheka ngogozwana!</p>
                   <p className="italic py-5">By: {post.author}</p>
                   <div className="text-gray-800 leading-7 mb-6">
                     {stripHtmlTags(post.content).slice(0, 500)}...

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Posts } from '../models/Post'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
+import { API_URL } from '../config.ts';
 
 const Favorites = () => {
   const [posts, setPosts] = useState<Posts[]>([])
@@ -22,7 +23,7 @@ const Favorites = () => {
       try {
         // Fetch favorite posts for the authenticated user
         const response = await axios.get(
-          'https://izinganekwane-folktales-backend.vercel.app/api/posts/reaction/favorites',
+          `${API_URL}/posts/reactions/favorites`,
           { withCredentials: true }
         )
         setPosts(response.data)
@@ -54,7 +55,10 @@ const Favorites = () => {
             {posts.map((post) => (
               <div key={post._id} className="p-5 flex flex-1">
                 <div className="max-w-lg rounded overflow-hidden shadow-lg p-4 grid place-content-center">
-                  <h2 className="font-bold">{post.title}</h2>
+                  <h1>Kwesukesukela</h1>
+                  <h2 className="font-bold">{post.title.toUpperCase()}</h2>
+                  <p className="italic">Cosu</p>
+                  <p className="italic">Sampheka ngogozwana!</p>
                   <p className="italic py-5">By: {post.author}</p>
                   <div className="text-gray-800 leading-7 mb-6">
                     {stripHtmlTags(post.content).slice(0, 500)}...

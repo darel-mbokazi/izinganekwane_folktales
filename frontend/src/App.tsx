@@ -31,9 +31,7 @@ function App() {
           <Route path="/My-Posts" element={<MyPosts />} />
           <Route path="/Favorites" element={<Favorites />} />
           <Route path="/Forgot-Password" element={<ForgotPassword />} />
-          <Route
-            path="/Reset-Password/:resetToken"
-            element={<ResetPassword />}
+          <Route path="/Reset-Password/:resetToken"element={<ResetPassword />}
           />
         </Routes>
         <Footer />

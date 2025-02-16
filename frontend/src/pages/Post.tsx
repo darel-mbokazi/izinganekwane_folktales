@@ -1,4 +1,4 @@
-import React, { useEffect, useState, ChangeEvent, SyntheticEvent } from 'react'
+import React, { useEffect, useState, SyntheticEvent, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import axios from 'axios'
 import { Posts } from '../models/Post'
@@ -9,18 +9,21 @@ import { CiShare1 } from 'react-icons/ci'
 import { FaTwitter, FaFacebook, FaInstagram } from 'react-icons/fa'
 import EmojiClickData from 'emoji-picker-react'
 import { useAuth } from '../context/AuthContext'
+import { API_URL } from '../config.ts';
 
 interface Comment {
   _id: string
   content: string
-  author: unknown
+  authorId: string
+  authorName: string 
   replies: Reply[]
 }
 
 interface Reply {
   _id: string
   content: string
-  author: unknown
+  authorId: string
+  authorName: string 
 }
 
 const Post: React.FC = () => {
@@ -35,14 +38,15 @@ const Post: React.FC = () => {
   const [newComment, setNewComment] = useState<string>('')
   const [reply, setReply] = useState<{ [key: string]: string }>({})
   const [sharing, setSharing] = useState<boolean>(false)
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false) // Control emoji picker visibility
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false) 
+  const emojiPickerRef = useRef<HTMLDivElement>(null); // Ref for the emoji picker div
   const { user } = useAuth()
 
   useEffect(() => {
     const fetchPost = async () => {
       try {
         const response = await axios.get(
-          `https://izinganekwane-folktales-backend.vercel.app/api/posts/${postId}`
+          `${API_URL}/posts/${postId}`
         )
         setPost(response.data)
         setLiked(response.data.likes.includes(user?._id))
@@ -64,7 +68,7 @@ const Post: React.FC = () => {
     try {
       console.log('Liking/Unliking post...')
       await axios.post(
-        `https://izinganekwane-folktales-backend.vercel.app/api/posts/reaction/${postId}/like`,
+        `${API_URL}/posts/reactions/${postId}/like`,
         {},
         {
           withCredentials: true,
@@ -82,7 +86,7 @@ const Post: React.FC = () => {
     try {
       console.log('Disliking post...')
       await axios.post(
-        `https://izinganekwane-folktales-backend.vercel.app/api/posts/reaction/${postId}/dislike`,
+        `${API_URL}/posts/reactions/${postId}/dislike`,
         {},
         {
           withCredentials: true,
@@ -100,7 +104,7 @@ const Post: React.FC = () => {
     try {
       console.log('Adding/removing favorite...')
       await axios.post(
-        `https://izinganekwane-folktales-backend.vercel.app/api/posts/reaction/${postId}/favorite`,
+        `${API_URL}/posts/reactions/${postId}/favorite`,
         {},
         {
           withCredentials: true,
@@ -120,14 +124,16 @@ const Post: React.FC = () => {
 
     try {
       const response = await axios.post(
-        `https://izinganekwane-folktales-backend.vercel.app/api/posts/comment/${postId}/comments`,
+        `${API_URL}/posts/comments/${postId}/add-comment`,
         { content: newComment },
         { withCredentials: true }
       )
       console.log('Comment added:', response.data)
       setComments([...comments, response.data])
       setNewComment('')
+
       window.location.reload()
+
     } catch (err) {
       console.error('Error adding comment:', err)
     }
@@ -140,7 +146,7 @@ const Post: React.FC = () => {
 
     try {
       const response = await axios.post(
-        `https://izinganekwane-folktales-backend.vercel.app/api/posts/comment/${postId}/comment-replies/${commentId}`,
+        `${API_URL}/posts/comments/${postId}/comment/${commentId}/add-reply`,
         { content: reply[commentId] },
         { withCredentials: true }
       )
@@ -150,6 +156,7 @@ const Post: React.FC = () => {
       console.log('Reply added:', response.data)
 
       window.location.reload()
+      
     } catch (err) {
       console.error('Error adding reply:', err)
     }
@@ -162,7 +169,7 @@ const Post: React.FC = () => {
 
     try {
       await axios.delete(
-        `https://izinganekwane-folktales-backend.vercel.app/api/posts/comment/${postId}/delete-comment/${commentId}`,
+        `${API_URL}/posts/comments/${postId}/comment/${commentId}/delete-comment`,
         { withCredentials: true }
       )
       setComments((prevComments) =>
@@ -181,7 +188,7 @@ const Post: React.FC = () => {
 
     try {
       await axios.delete(
-        `https://izinganekwane-folktales-backend.vercel.app/api/posts/comment/${postId}/delete-reply/${commentId}/${replyId}`,
+        `${API_URL}/posts/comments/${postId}/comment/${commentId}/reply/${replyId}/delete-reply`,
         { withCredentials: true }
       )
 
@@ -208,16 +215,28 @@ const Post: React.FC = () => {
     setSharing(!sharing)
   }
 
+  // Function to handle emoji click
   const handleEmojiClick = (emojiObject: { emoji: string }) => {
-    setNewComment((prevComment) => prevComment + emojiObject.emoji) 
-  }
-  
+    setNewComment((prevComment) => prevComment + emojiObject.emoji);
+  };
 
-  const stripHtmlTags = (html: string) => {
-    const tempDiv = document.createElement('div')
-    tempDiv.innerHTML = html
-    return tempDiv.textContent || tempDiv.innerText || ''
-  }
+  // Function to handle clicks outside the emoji picker
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        emojiPickerRef.current &&
+        !emojiPickerRef.current.contains(event.target as Node)
+      ) {
+        setShowEmojiPicker(false); 
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   if (loading) {
     console.log('Loading post data...')
@@ -250,10 +269,14 @@ const Post: React.FC = () => {
         <h1 className="text-3xl font-bold mb-16 text-center max-sm:text-2xl">
           {post.title.toUpperCase()}
         </h1>
-        <div className="text-slate-300 leading-7 mb-6 max-sm:text-slate-950">
-          {stripHtmlTags(post.content)}
+        <h2>Kwesukesukela</h2>
+        <p className="italic">Cosu</p>
+        <p className="italic">Sampheka ngogozwana!</p>
+        <div className="text-slate-300 leading-7 my-6 max-sm:text-slate-950">
+          <div dangerouslySetInnerHTML={{ __html: post.content }} />
         </div>
-
+        <p className="italic">Cosi, Cosi Iyaphela! </p>
+        <p className="italic py-5">Written By: <span className='text-slate-500'>{post.author}</span></p>
         <div className="flex justify-between my-auto place-items-center mt-8">
           <div className="flex items-center space-x-4">
             <button onClick={handleLike}>
@@ -353,9 +376,11 @@ const Post: React.FC = () => {
             {comments.map((comment) => (
               <li key={comment._id} className="mb-4 ">
                 <div className="border p-4 rounded-lg">
-                  <p className="flex justify-between ">
-                    <span>{comment.content}</span>
-                    {comment.author === user?._id && (
+                  <p className="flex justify-between">
+                    <span>
+                      <strong>{comment.authorName}</strong>: {comment.content}
+                    </span>
+                    {comment.authorId === user?._id && (
                       <span>
                         <MdDeleteForever
                           className="hover:text-red-700 text-xl cursor-pointer"
@@ -371,8 +396,10 @@ const Post: React.FC = () => {
                           key={reply._id}
                           className="border p-2 rounded-lg mb-2">
                           <p className="flex justify-between">
-                            <span>{reply.content}</span>
-                            {comment.author === user?._id && (
+                            <span>
+                              <strong>{reply.authorName}</strong>: {reply.content}
+                            </span>
+                            {reply.authorId === user?._id && (
                               <span>
                                 <MdDeleteForever
                                   className="hover:text-red-700 text-xl cursor-pointer"
@@ -429,7 +456,7 @@ const Post: React.FC = () => {
                 <input
                   type="text"
                   value={newComment}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     setNewComment(e.target.value)
                   }
                   placeholder="Write a comment..."
@@ -437,20 +464,24 @@ const Post: React.FC = () => {
                 />
                 <button
                   type="button"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2" 
-                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                >
                   😊
                 </button>
               </div>
               {showEmojiPicker && (
-                <div className="fixed inset-0 flex items-center m-auto z-50 w-fit max-sm:w-3/4">
-                  {' '}
+                <div
+                  ref={emojiPickerRef} // Attach the ref to the emoji picker div
+                  className="fixed inset-0 flex items-center m-auto z-50 w-fit max-sm:w-3/4"
+                >
                   <EmojiClickData onEmojiClick={handleEmojiClick} />
                 </div>
               )}
               <button
                 type="submit"
-                className="bg-slate-600 hover:bg-slate-500 text-slate-200  px-4 py-2 rounded-lg mt-2">
+                className="bg-slate-600 hover:bg-slate-500 text-slate-200 px-4 py-2 rounded-lg mt-2"
+              >
                 Comment
               </button>
             </form>

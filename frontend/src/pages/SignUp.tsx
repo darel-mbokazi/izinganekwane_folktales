@@ -164,7 +164,7 @@ try {
             )}
           </div>
           {errors.general && <p className="text-red-500">{errors.general}</p>}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-center ">
             <button
               type="submit"
               className="bg-slate-950 text-slate-300 py-2 px-10 rounded-md mt-2 w-fit hover:bg-slate-500 font-bold focus:outline-none focus:shadow-outline">

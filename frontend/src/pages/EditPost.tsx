@@ -3,6 +3,7 @@ import axios from 'axios'
 import ReactQuill from 'react-quill'
 import { useParams, useNavigate } from 'react-router-dom'
 import 'react-quill/dist/quill.snow.css'
+import { API_URL } from '../config.ts';
 
 const EditPost = () => {
   const { postId } = useParams<{ postId: string }>()
@@ -14,7 +15,7 @@ const EditPost = () => {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const response = await axios.get(`https://izinganekwane-folktales-backend.vercel.app/api/posts/${postId}`, 
+        const response = await axios.get(`${API_URL}/posts/${postId}`, 
           { withCredentials: true })
         const post = response.data
         setTitle(post.title)
@@ -33,7 +34,7 @@ const EditPost = () => {
     e.preventDefault()
 
     try {
-      await axios.put(`https://izinganekwane-folktales-backend.vercel.app/api/posts/${postId}`, { title, author, content }, { withCredentials: true })
+      await axios.put(`${API_URL}/posts/${postId}`, { title, author, content }, { withCredentials: true })
       navigate(`/Post/${postId}`) 
     } catch (err) {
       console.error('Failed to update post', err)

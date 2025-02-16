@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import { API_URL } from '../config.ts';
 
 const ResetPassword: React.FC = () => {
   const [password, setPassword] = useState('')
@@ -17,7 +18,7 @@ const ResetPassword: React.FC = () => {
     }
     try {
       const response = await axios.post(
-        `https://izinganekwane-folktales-backend.vercel.app/api/users/reset-password`,
+        `${API_URL}/users/reset-password`,
         {
           password,
           resetToken,

@@ -1,10 +1,11 @@
 import React, { createContext, useState, useEffect } from 'react'
 import axios from 'axios'
 import { User } from '../models/User'
+import { API_URL } from '../config.ts';
 
 interface AuthContextType {
   user: User | null
-  login: (email: string, password: string) => Promise<void>
+  login: (email: string, password: string) => Promise<User | null> 
   register: (name: string, email: string, password: string) => Promise<void>
   logout: () => Promise<void>
   updateUser: (userId: string, name: string, email: string) => Promise<void>
@@ -21,16 +22,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const fetchUser = async () => {
       try {
         const authResponse = await axios.get(
-          'https://izinganekwane-folktales-backend.vercel.app/api/users',
+          `${API_URL}/users`,
           {
             withCredentials: true,
           }
         )
         const userId = authResponse.data.user.userId
 
-        // Fetch the full user details using the GetUserById endpoint
+        // get user details using the GetUserById endpoint
         const fullUserResponse = await axios.get(
-          `https://izinganekwane-folktales-backend.vercel.app/api/users/${userId}`,
+          `${API_URL}/users/${userId}`,
           { withCredentials: true }
         )
         setUser(fullUserResponse.data)
@@ -43,7 +44,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const register = async (name: string, email: string, password: string) => {
     try {
-      await axios.post('https://izinganekwane-folktales-backend.vercel.app/api/users/sign-up', {
+      await axios.post(`${API_URL}/users/sign-up`, {
         name,
         email,
         password,
@@ -53,36 +54,40 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }
 
-const login = async (email: string, password: string) => {
-  try {
-    const authResponse = await axios.post(
-      'https://izinganekwane-folktales-backend.vercel.app/api/users/sign-in',
-      { email, password },
-      { withCredentials: true }
-    )
+  const login = async (email: string, password: string): Promise<User | null> => {
+    try {
+      const authResponse = await axios.post(
+        `${API_URL}/users/sign-in`,
+        { email, password },
+        { withCredentials: true }
+      );
 
-    console.log('Login response:', authResponse.data)
+      console.log('Login response:', authResponse.data);
 
-    if (!authResponse.data.user) {
-      throw new Error('User data is not available in the response')
+      if (!authResponse.data.user) {
+        throw new Error('User data is not available in the response');
+      }
+
+      const userId = authResponse.data.user.userId;
+
+      const fullUserResponse = await axios.get(
+        `${API_URL}/users/${userId}`,
+        { withCredentials: true }
+      );
+
+      setUser(fullUserResponse.data); 
+      return fullUserResponse.data; 
+    } catch (error) {
+      console.error('Login error:', error);
+      return null; 
     }
+  };
 
-    const userId = authResponse.data.user.userId
-
-    const fullUserResponse = await axios.get(
-      `https://izinganekwane-folktales-backend.vercel.app/api/users/${userId}`,
-      { withCredentials: true }
-    )
-    setUser(fullUserResponse.data)
-  } catch (error) {
-    console.error('Login error:', error)
-  }
-}
 
 
   const logout = async () => {
     try {
-      await axios.get('https://izinganekwane-folktales-backend.vercel.app/api/users/sign-out', {
+      await axios.get(`${API_URL}/users/sign-out`, {
         withCredentials: true,
       })
       console.log('Logout Successfully')
@@ -95,7 +100,7 @@ const login = async (email: string, password: string) => {
   const updateUser = async (userId: string, name: string, email: string) => {
     try {
       const response = await axios.put(
-        `https://izinganekwane-folktales-backend.vercel.app/api/users/${userId}`,
+        `${API_URL}/users/${userId}`,
         { name, email },
         { withCredentials: true }
       )
@@ -107,7 +112,7 @@ const login = async (email: string, password: string) => {
 
   const deleteUser = async (userId: string) => {
     try {
-      await axios.delete(`https://izinganekwane-folktales-backend.vercel.app/api/users/${userId}`, {
+      await axios.delete(`${API_URL}/users/${userId}`, {
         withCredentials: true,
       })
       setUser(null)

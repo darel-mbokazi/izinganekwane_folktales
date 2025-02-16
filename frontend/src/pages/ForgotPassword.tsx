@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { API_URL } from '../config.ts';
 
 const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('')
@@ -11,7 +12,7 @@ const ForgotPassword: React.FC = () => {
     e.preventDefault()
     try {
       const response = await fetch(
-        'https://izinganekwane-folktales-backend.vercel.app/api/users/forgot-password',
+        `${API_URL}/forgot-password`,
         {
           method: 'POST',
           headers: {
@@ -54,9 +55,9 @@ const ForgotPassword: React.FC = () => {
             />
           </div>
           {message && (
-            <p className="mt-4 text-center text-red-500">{message}</p>
+            <p className="mt-5 text-center text-red-500">{message}</p>
           )}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-center mt-5">
             <button
               type="submit"
               className="bg-slate-950 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
