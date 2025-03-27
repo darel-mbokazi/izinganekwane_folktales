@@ -1,3 +1,5 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5400/api';
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  'https://izinganekwane-folktales-backend.vercel.app'
 
 export { API_URL };
