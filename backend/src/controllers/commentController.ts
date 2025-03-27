@@ -15,7 +15,7 @@ const addComment: RequestHandler = async (req, res, next) => {
     const post = await PostModel.findById(postId).exec();
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found.' });
+      return res.status(404).json({ message: 'Failed to add comment.' });
     }
 
     // Fetch the user's name
@@ -50,7 +50,7 @@ const getAllComments: RequestHandler = async (req, res, next) => {
     const post = await PostModel.findById(postId).exec()
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found.' })
+      return res.status(404).json({ message: 'Comments not found.' })
     }
 
     res.status(200).json({ comments: post.comments })
@@ -67,7 +67,7 @@ const deleteComment: RequestHandler = async (req, res, next) => {
     const post = await PostModel.findById(postId).exec();
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found.' });
+      return res.status(404).json({ message: 'Comment not found.' });
     }
 
     const commentIndex = post.comments.findIndex(
@@ -107,13 +107,13 @@ const addReply: RequestHandler = async (req, res, next) => {
     const post = await PostModel.findById(postId).exec();
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found.' });
+      return res.status(404).json({ message: 'Failed to add reply' });
     }
 
     const comment = post.comments.find((c) => c._id.toString() === commentId);
 
     if (!comment) {
-      return res.status(404).json({ message: 'Comment not found.' });
+      return res.status(404).json({ message: 'Reply not found.' });
     }
 
     if (!Array.isArray(comment.replies)) {
@@ -152,7 +152,7 @@ const deleteReply: RequestHandler = async (req, res, next) => {
     const post = await PostModel.findById(postId).exec();
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found.' });
+      return res.status(404).json({ message: 'Reply not found.' });
     }
 
     const comment = post.comments.find(
@@ -160,7 +160,7 @@ const deleteReply: RequestHandler = async (req, res, next) => {
     );
 
     if (!comment) {
-      return res.status(404).json({ message: 'Comment not found.' });
+      return res.status(404).json({ message: 'Reply not found.' });
     }
 
     const replyIndex = comment.replies.findIndex(

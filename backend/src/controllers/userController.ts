@@ -99,13 +99,13 @@ const signIn: RequestHandler<unknown, unknown, userInfo, unknown> = async (
     const token = jwt.sign(
       { userId: findUser._id, email: findUser.email },
       process.env.JWT_SECRET as string,
-      { expiresIn: '1h' }
+      { expiresIn: '1d' }
     )
 
     res.cookie('token', token, {
       httpOnly: true,
-      secure: true, 
-      sameSite: 'none',
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
     })
 
     res.status(200).json({

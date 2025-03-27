@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import logo from '../assets/the folktales.png'
+import logo from '../assets/logo.png'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { CiMenuBurger } from 'react-icons/ci'
 import { MdCancel } from 'react-icons/md'

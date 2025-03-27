@@ -7,6 +7,7 @@ const AllPosts = () => {
   const [posts, setPosts] = useState<Posts[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const postsPerPage = 6 
+  const [loading, setLoading] = useState<boolean>(true)
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -21,6 +22,7 @@ const AllPosts = () => {
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         })
         setPosts(post)
+        setLoading(false)
       } catch (error) {
         console.error(error)
       }
@@ -41,6 +43,15 @@ const AllPosts = () => {
 
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber)
 
+  if (loading) {
+    console.log('Loading post data...')
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Loading...
+      </div>
+    )
+  }
+
   return (
     <div className="px-5 grid place-content-center place-items-center">
       <h1 className='text-center text-3xl font-bold py-10'>All Posts</h1>
@@ -56,6 +67,7 @@ const AllPosts = () => {
               <div className="text-gray-800 leading-7 mb-6">
                 {stripHtmlTags(post.content).slice(0, 200)}...
               </div>
+              <p className='italic text-gray-600'>{post.createdAt >= post.updatedAt ? `Created At: ${post.createdAt.split('T')[0]}` : `Updated At: ${post.updatedAt.split('T')[0]}`}</p>
               <p className="py-4 text-slate-950 font-bold hover:text-slate-500">
                 <Link to={`/Post/${post._id}`}>Read more</Link>
               </p>

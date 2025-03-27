@@ -178,5 +178,4 @@ const deletePost: RequestHandler = async (req, res, next) => {
   }
 }
 
-
 export { getPosts, getPost, getPostByUser, createPost, updatePost, deletePost }

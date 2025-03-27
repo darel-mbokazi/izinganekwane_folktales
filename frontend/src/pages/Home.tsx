@@ -1,5 +1,5 @@
 import AllPosts from "./AllPosts"
-import logo from '../assets/the folktales.png'
+import logo from '../assets/logo.png'
 
 const Home = () => {
   return (

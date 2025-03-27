@@ -91,6 +91,11 @@ const MyPosts = () => {
                   <div className="text-gray-800 leading-7 mb-6">
                     {stripHtmlTags(post.content).slice(0, 500)}...
                   </div>
+                  <p className="italic text-gray-600">
+                    {post.createdAt >= post.updatedAt
+                      ? `Created At: ${post.createdAt.split('T')[0]}`
+                      : `Updated At: ${post.updatedAt.split('T')[0]}`}
+                  </p>
                   <p className="py-4 text-slate-950 font-bold hover:text-slate-500">
                     <Link to={`/Post/${post._id}`}>Read more</Link>
                   </p>

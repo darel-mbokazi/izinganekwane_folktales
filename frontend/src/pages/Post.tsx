@@ -38,8 +38,9 @@ const Post: React.FC = () => {
   const [newComment, setNewComment] = useState<string>('')
   const [reply, setReply] = useState<{ [key: string]: string }>({})
   const [sharing, setSharing] = useState<boolean>(false)
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false) 
-  const emojiPickerRef = useRef<HTMLDivElement>(null); // Ref for the emoji picker div
+  const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false) 
+  const [copiedLink, setCopiedLink] = useState<boolean>(true)
+  const emojiPickerRef = useRef<HTMLDivElement>(null)
   const { user } = useAuth()
 
   useEffect(() => {
@@ -62,6 +63,14 @@ const Post: React.FC = () => {
 
     fetchPost()
   }, [postId, user])
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(window.location.href)
+    
+    setCopiedLink(true)
+
+    setTimeout(() => setCopiedLink(false), 5000)
+  }
 
   const handleLike = async () => {
     if (!user) return
@@ -116,58 +125,67 @@ const Post: React.FC = () => {
     }
   }
 
-  const handleCommentSubmit = async (e: SyntheticEvent) => {
-    e.preventDefault();
-    if (!user || !newComment.trim()) return;
+const handleCommentSubmit = async (e: SyntheticEvent) => {
+  e.preventDefault()
 
-    console.log('Submitting comment:', newComment);
+  try {
+    const response = await axios.post(
+      `${API_URL}/posts/comments/${postId}/add-comment`,
+      { content: newComment },
+      { withCredentials: true }
+    )
 
-    try {
-      const response = await axios.post(
-        `${API_URL}/posts/comments/${postId}/add-comment`,
-        { content: newComment },
-        { withCredentials: true }
-      );
-
-      console.log('Comment added:', response.data);
-
-      // Update the comments state locally
-      setComments((prevComments) => [...prevComments, response.data]);
-      setNewComment(''); 
-    } catch (err) {
-      console.error('Error adding comment:', err);
+    if (response.data.post) {
+      setComments(response.data.post.comments) // Update with latest comments from API
     }
-  };
 
-  const handleReplySubmit = async (commentId: string) => {
-    if (!user || !reply[commentId]?.trim()) return;
+    setNewComment('')
+    console.log('Comment Added', response)
+  } catch (err) {
+    console.error('Error adding comment:', err)
+  }
+}
 
-    console.log('Submitting reply:', reply[commentId]);
 
-    try {
-      const response = await axios.post(
-        `${API_URL}/posts/comments/${postId}/comment/${commentId}/add-reply`,
-        { content: reply[commentId] },
-        { withCredentials: true }
-      );
+const handleReplySubmit = async (commentId: string) => {
+  if (!user || !reply[commentId]?.trim()) return
 
-      console.log('Reply added:', response.data);
+  try {
+    const response = await axios.post(
+      `${API_URL}/posts/comments/${postId}/comment/${commentId}/add-reply`,
+      { content: reply[commentId] },
+      { withCredentials: true }
+    )
 
-      // Update the comments state locally
-      setComments((prevComments) =>
-        prevComments.map((comment) =>
-          comment._id === commentId
-            ? { ...comment, replies: [...comment.replies, response.data] }
-            : comment
-        )
-      );
+    console.log('Reply Added:', response.data)
 
-      // Clear the reply input for this comment
-      setReply((prev) => ({ ...prev, [commentId]: '' }));
-    } catch (err) {
-      console.error('Error adding reply:', err);
+    const updatedPost = response.data.post
+    const updatedComment = updatedPost?.comments.find(
+      (c: Reply) => c._id === commentId
+    )
+    const newReply = updatedComment?.replies.slice(-1)[0] // Get the last reply
+
+    if (!newReply) {
+      console.error('Reply data missing from response:', response.data)
+      return
     }
-  };
+
+    setComments((prevComments) =>
+      prevComments.map((comment) =>
+        comment._id === commentId
+          ? { ...comment, replies: [...(comment.replies || []), newReply] }
+          : comment
+      )
+    )
+
+    setReply((prev) => ({ ...prev, [commentId]: '' }))
+  } catch (err) {
+    console.error('Error adding reply:', err)
+  }
+}
+
+
+
 
   const handleDeleteComment = async (commentId: string) => {
     if (!user) return
@@ -243,7 +261,8 @@ const Post: React.FC = () => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [])
+
 
   if (loading) {
     console.log('Loading post data...')
@@ -279,11 +298,18 @@ const Post: React.FC = () => {
         <h2>Kwesukesukela</h2>
         <p className="italic">Cosu</p>
         <p className="italic">Sampheka ngogozwana!</p>
+        <p className="italic text-gray-600 pt-3">
+          {post.createdAt >= post.updatedAt
+            ? `Created At: ${post.createdAt.split('T')[0]}`
+            : `Updated At: ${post.updatedAt.split('T')[0]}`}
+        </p>
         <div className="text-slate-300 leading-7 my-6 max-sm:text-slate-950">
           <div dangerouslySetInnerHTML={{ __html: post.content }} />
         </div>
         <p className="italic">Cosi, Cosi Iyaphela! </p>
-        <p className="italic py-5">Written By: <span className='text-slate-500'>{post.author}</span></p>
+        <p className="italic py-5">
+          Written By: <span className="text-slate-500">{post.author}</span>
+        </p>
         <div className="flex justify-between my-auto place-items-center mt-8">
           <div className="flex items-center space-x-4">
             <button onClick={handleLike}>
@@ -358,12 +384,9 @@ const Post: React.FC = () => {
                   className="flex-grow p-2 border-none focus:outline-none"
                 />
                 <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(window.location.href)
-                    alert('Link copied to clipboard!')
-                  }}
+                  onClick={handleCopy}
                   className="bg-slate-950 hover:bg-slate-500 text-slate-200 px-4 py-2 rounded-lg">
-                  Copy
+                  {copiedLink ? 'Copied' : 'Copy'}
                 </button>
               </div>
 
@@ -380,7 +403,7 @@ const Post: React.FC = () => {
         <div className="mt-8">
           <h3 className="text-xl font-bold pb-5">Comments</h3>
           <ul>
-            {comments.map((comment) => (
+            {comments.length > 0 ? (comments.map((comment) => (
               <li key={comment._id} className="mb-4 ">
                 <div className="border p-4 rounded-lg">
                   <p className="flex justify-between">
@@ -404,7 +427,8 @@ const Post: React.FC = () => {
                           className="border p-2 rounded-lg mb-2">
                           <p className="flex justify-between">
                             <span>
-                              <strong>{reply.authorName}</strong>: {reply.content}
+                              <strong>{reply.authorName}</strong>:{' '}
+                              {reply.content}
                             </span>
                             {reply.authorId === user?._id && (
                               <span>
@@ -453,7 +477,9 @@ const Post: React.FC = () => {
                   )}
                 </div>
               </li>
-            ))}
+            ))) : (
+              <p>No comments yet</p>
+            )}
           </ul>
 
           {/* New Comment Input */}
@@ -472,23 +498,20 @@ const Post: React.FC = () => {
                 <button
                   type="button"
                   className="absolute right-2 top-1/2 transform -translate-y-1/2"
-                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                >
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
                   😊
                 </button>
               </div>
               {showEmojiPicker && (
                 <div
                   ref={emojiPickerRef} // Attach the ref to the emoji picker div
-                  className="fixed inset-0 flex items-center m-auto z-50 w-fit max-sm:w-3/4"
-                >
+                  className="fixed inset-0 flex items-center m-auto z-50 w-fit max-sm:w-3/4">
                   <EmojiClickData onEmojiClick={handleEmojiClick} />
                 </div>
               )}
               <button
                 type="submit"
-                className="bg-slate-600 hover:bg-slate-500 text-slate-200 px-4 py-2 rounded-lg mt-2"
-              >
+                className="bg-slate-600 hover:bg-slate-500 text-slate-200 px-4 py-2 rounded-lg mt-2">
                 Comment
               </button>
             </form>

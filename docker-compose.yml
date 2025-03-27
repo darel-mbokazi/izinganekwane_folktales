@@ -1,0 +1,32 @@
+name: izinganekwane-mern-app
+
+services:
+  api:
+    build:
+      context: './backend'
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: './backend/.env'
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    ports:
+      - 5400:5400
+
+  client:
+    build:
+      context: './frontend'
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - izinganekwane-mern-app
+    ports:
+      - 5173:5173
+    depends_on:
+      - api
+networks:
+  izinganekwane-mern-app:
+    driver: bridge
