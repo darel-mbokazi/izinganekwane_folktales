@@ -13,11 +13,8 @@ import ResetPassword from './pages/ResetPassword'
 import EditPost from './pages/EditPost'
 import Post from './pages/Post'
 import Footer from './components/Footer'
-import axios from 'axios'
 
 function App() {
-  axios.defaults.baseURL = 'https://izinganekwane-folktales-backend.vercel.app'
-  axios.defaults.withCredentials = true
 
   return (
     <>

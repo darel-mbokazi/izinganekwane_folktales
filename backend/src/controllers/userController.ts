@@ -104,13 +104,8 @@ const signIn: RequestHandler<unknown, unknown, userInfo, unknown> = async (
 
     res.cookie('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: true,
       sameSite: 'none',
-      domain:
-        process.env.NODE_ENV === 'production'
-          ? 'https://izinganekwane-folktales.vercel.app'
-          : undefined,
-      path: '/',
     })
 
 
